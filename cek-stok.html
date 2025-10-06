@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Zain Store • Stock XL Akrab</title>
+  <meta name="theme-color" content="#0b0e1a"/>
+
+  <style>
+    :root{
+      --bg:#0b0e1a; --panel:#12172b; --panel-2:#0f1324; --ink:#e8eefc; --muted:#9aa6bd;
+      --stroke:#1f2440; --brand-a:#7c9cff; --brand-b:#b38cff; --accent:#6bf0c2; --danger:#ff6b81; --ok:#66e3a1;
+      --radius:20px; --shadow:0 18px 50px rgba(7,10,24,.35); --glass:linear-gradient(180deg, #ffffff10, #00000018);
+    }
+    *{box-sizing:border-box}
+    html, body{height:100%}
+    body{
+      margin:0; color:var(--ink); font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background: radial-gradient(120% 120% at 80% 0%, #10163a 0%, var(--bg) 60%);
+      overflow-x:hidden;
+    }
+
+    .bg-aurora{pointer-events:none; position:fixed; inset:0; z-index:-1; overflow:hidden; filter: blur(40px) saturate(140%) contrast(110%)}
+    .blob{position:absolute; border-radius:999px; opacity:.55; mix-blend-mode:screen; background: radial-gradient(closest-side, #799aff, transparent 70%); width:48vmax; height:48vmax; left:-10vmax; top:-10vmax; animation: drift 28s linear infinite}
+    .blob.b2{background:radial-gradient(closest-side, #b58cff, transparent 70%); left:40vw; top:-12vmax; animation-duration:32s; animation-delay:-10s}
+    .blob.b3{background:radial-gradient(closest-side, #47e6b8, transparent 70%); left:60vw; top:40vh; animation-duration:36s; animation-delay:-4s}
+    @keyframes drift{0%{transform:translate3d(0,0,0) scale(1)} 50%{transform:translate3d(6vw,6vh,0) scale(1.15)} 100%{transform:translate3d(0,0,0) scale(1)}}
+
+    .wrap{min-height:100%; display:grid; place-items:center; padding:32px}
+    .card{
+      width:min(980px,94vw); background:var(--glass); border:1px solid var(--stroke); border-radius:var(--radius);
+      box-shadow:var(--shadow); backdrop-filter: blur(14px) saturate(120%); overflow:hidden; position:relative;
+      transform-origin:50% 60%; animation: cardIn .6s cubic-bezier(.2,.8,.2,1) both;
+    }
+    @keyframes cardIn{from{opacity:0; transform:translateY(18px) scale(.98)} to{opacity:1; transform:none}}
+    .card::before{content:""; position:absolute; inset:0; border-radius:inherit; padding:1px;
+      background: linear-gradient(135deg,#7c9cff88,#b38cff88,#46e6b888);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite:xor; mask-composite: exclude; pointer-events:none;
+    }
+
+    .hero{display:flex; gap:16px; align-items:center; padding:22px 22px 8px}
+    .logo{width:56px; height:56px; border-radius:16px; background: conic-gradient(from 120deg, var(--brand-a), var(--brand-b), #46e6b8); box-shadow:0 10px 30px #0007; position:relative; overflow:hidden}
+    .logo::after{content:""; position:absolute; inset:-30%; background: radial-gradient(50% 50% at 30% 10%, #fff8, transparent 50%); transform:rotate(25deg); filter: blur(6px); animation: sheen 5s ease-in-out infinite}
+    @keyframes sheen{0%,100%{transform:translateX(-20%) rotate(25deg)} 50%{transform:translateX(40%) rotate(25deg)}}
+
+    h1{margin:0; font-size:24px; letter-spacing:.2px}
+    .sub{color:var(--muted)}
+
+    .actions{display:flex; gap:12px; padding:16px 22px 6px; flex-wrap:wrap}
+    .btn{appearance:none; border:1px solid var(--stroke); color:#fff; cursor:pointer; background:#1a1f34; padding:12px 16px; border-radius:14px; display:inline-flex; align-items:center; gap:10px; position:relative; transition:.25s cubic-bezier(.2,.8,.2,1); user-select:none}
+    .btn.primary{background: linear-gradient(90deg, var(--brand-a), var(--brand-b)); border-color:#0000}
+    .btn:hover{transform: translateY(-1px); box-shadow: 0 10px 28px rgba(0,0,0,.25)}
+    .btn:active{transform: translateY(0) scale(.98)}
+    .btn[disabled]{opacity:.65; cursor:not-allowed; filter:saturate(.6)}
+    .btn .spinner{--sz:16px; width:var(--sz); height:var(--sz); border-radius:999px; border:2px solid #fff5; border-top-color:#fff; animation: spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .content{padding:10px 22px 22px}
+    .meta{font-size:13px; color:var(--muted); margin-bottom:10px; display:flex; align-items:center; gap:8px}
+    .pill{font-size:12px; padding:6px 10px; border-radius:999px; background:#162040; border:1px solid var(--stroke); color:#d9e3ff; display:inline-flex; align-items:center; gap:8px}
+    .pill.ok{background:#0f1f19; color:#c9ffe3; border-color:#164232}
+    .pill.warn{background:#24121b; color:#ffd6de; border-color:#4a1c2b}
+
+    .box{border:1px dashed var(--stroke); background: linear-gradient(180deg, #0b0f1e, #0b0f1e); padding:14px; border-radius:14px; min-height:120px; position:relative; overflow:hidden}
+
+    /* Skeleton DIHAPUS */
+
+    pre{margin:0; white-space:pre-wrap; word-break:break-word; font:14px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; color:#e7f1ff; animation: fadeIn .35s ease-out both}
+    @keyframes fadeIn{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
+
+    .footer{display:flex; gap:10px; justify-content:flex-end; padding:0 22px 22px; flex-wrap:wrap}
+    .chip{font-size:13px; border-radius:12px; padding:10px 12px; color:#dce6ff; text-decoration:none; background:#121a33; border:1px solid var(--stroke); transition:.25s}
+    .chip:hover{transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,.25)}
+
+    .toast{position:fixed; right:16px; bottom:16px; padding:12px 14px; border-radius:12px; background:#0f1f19; color:#d6ffe9; border:1px solid #194a3a; box-shadow:var(--shadow); opacity:0; transform: translateY(8px); pointer-events:none; transition:.35s cubic-bezier(.2,.8,.2,1)}
+    .toast.show{opacity:1; transform:none}
+
+    .tilt{will-change: transform; transition: transform .15s ease-out}
+  </style>
+</head>
+<body>
+  <div class="bg-aurora" aria-hidden="true">
+    <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+  </div>
+
+  <div class="wrap">
+    <div class="card tilt" id="card">
+      <div class="hero">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Zain Store • Stock XL Akrab</h1>
+          <div class="sub">Produk bulanan dan harian restock otomatis setiap jam <b>06:00 WIB</b>. Klik tombol di bawah untuk cek stok.</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="btn" class="btn primary">
+          <span id="btnIcon">🔎</span><span id="btnLabel">Cek Stok</span>
+        </button>
+        <button id="copy" class="btn">📋 Copy</button>
+        <span id="pill" class="pill">Status: <b>Belum dimuat</b></span>
+      </div>
+
+      <div class="content">
+        <div id="meta" class="meta">—</div>
+        <div class="box">
+          <!-- Skeleton dihapus -->
+          <pre id="out">—</pre>
+        </div>
+      </div>
+
+      <div class="footer">
+        <a class="chip" href="https://wa.me/6281252162402" target="_blank">👑 Chat Owner (0812-5216-2402)</a>
+        <a class="chip" href="https://wa.me/6285147140814" target="_blank">🤖 Transaksi via Bot (0851-4714-0814)</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">✅ Disalin ke clipboard</div>
+
+  <script>
+    const btn = document.getElementById("btn");
+    const btnIcon = document.getElementById("btnIcon");
+    const btnLabel = document.getElementById("btnLabel");
+    const copyBtn = document.getElementById("copy");
+    const out = document.getElementById("out");
+    const meta = document.getElementById("meta");
+    const pill = document.getElementById("pill");
+    const toast = document.getElementById("toast");
+    const card = document.getElementById("card");
+
+    let lastFetch = 0;
+
+    function setPill(text, type){
+      pill.className = "pill" + (type ? " " + type : "");
+      pill.innerHTML = text;
+    }
+
+    // ⛔ Tidak menampilkan skeleton & tidak menghapus teks stok saat memuat
+    function setStateLoading(){
+      btn.disabled = true;
+      btnIcon.innerHTML = '<span class="spinner" aria-hidden="true"></span>';
+      btnLabel.textContent = "Memuat…";
+      meta.textContent = "Memuat stok produk Zain Store…";
+      setPill('Status: <b>Memuat…</b>');
+    }
+    function setStateDone(){
+      btn.disabled = false;
+      btnIcon.textContent = "🔎";
+      btnLabel.textContent = "Cek Stok";
+      lastFetch = Date.now();
+    }
+
+    async function fetchStok(){
+      try{
+        setStateLoading();
+        const r = await fetch("/api/stok?ts=" + Date.now(), { cache: "no-store" });
+        const status = r.status;
+        let j; try { j = await r.json(); } catch { j = null; }
+
+        if (!r.ok || !j || j.ok === false){
+          const msg = (j && (j.error || j.message)) ? j.error || j.message : "HTTP " + status;
+          meta.textContent = "Gagal memuat (" + msg + "). Coba lagi.";
+          // Biarkan out.textContent tetap menampilkan data lama
+          setPill('Status: <b>Gagal</b>', 'warn');
+          return;
+        }
+
+        let text = (j.text || "").trim();
+        if (!text) text = "Stok kosong / belum tersedia.\nSilakan cek lagi nanti.";
+
+        meta.textContent = j.count > 0 ? ("Ditemukan " + j.count + " item stok.") : "Stok kosong.";
+        out.textContent = text;
+        setPill(j.count > 0 ? 'Status: <b class="num">'+j.count+'</b> item tersedia' : 'Status: <b>Stok kosong</b>', j.count>0 ? 'ok' : '');
+      }catch(e){
+        meta.textContent = "Gagal memuat (" + (e && e.message || "error") + ").";
+        setPill('Status: <b>Gagal</b>', 'warn');
+      }finally{
+        setStateDone();
+      }
+    }
+
+    btn.addEventListener("click", fetchStok);
+
+    copyBtn.addEventListener("click", async ()=>{
+      try{
+        await navigator.clipboard.writeText(out.textContent || "");
+        toast.classList.add("show");
+        setTimeout(()=>toast.classList.remove("show"), 1400);
+      }catch{}
+    });
+
+    // Auto load saat halaman siap
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", fetchStok, { once:true });
+    } else {
+      fetchStok();
+    }
+
+    // Auto refresh saat balik ke tab (≥60s)
+    document.addEventListener("visibilitychange", ()=>{
+      if(!document.hidden && Date.now()-lastFetch > 60000) fetchStok();
+    });
+
+    // Subtle tilt effect
+    (function(){
+      const max = 8;
+      function onMove(e){
+        const r = card.getBoundingClientRect();
+        const cx = r.left + r.width/2, cy = r.top + r.height/2;
+        const dx = (e.clientX - cx) / r.width, dy = (e.clientY - cy) / r.height;
+        card.style.transform = `rotateX(${(-dy*max).toFixed(2)}deg) rotateY(${(dx*max).toFixed(2)}deg)`;
+      }
+      function reset(){ card.style.transform = "rotateX(0) rotateY(0)" }
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseleave", reset);
+    })();
+  </script>
+</body>
+</html>

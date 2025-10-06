@@ -1,0 +1,6 @@
+{
+  "name": "stokakrab-zainstore",
+  "private": true,
+  "type": "commonjs",
+  "engines": { "node": ">=18" }
+}
