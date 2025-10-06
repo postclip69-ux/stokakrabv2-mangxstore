@@ -1,0 +1,1 @@
+# stokakrabv2-mangxstore
