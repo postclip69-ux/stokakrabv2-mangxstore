@@ -7,7 +7,6 @@
   <meta name="theme-color" content="#EC2028"/>
 
   <style>
-    /* TEMA BARU: SiDompul (Merah, Putih, Abu-abu Gelap) */
     :root{
       --bg: #212121;      /* Latar belakang abu-abu gelap */
       --panel: #2d2d2d;   /* Warna panel sedikit lebih terang */
@@ -26,17 +25,12 @@
       background-color: var(--bg);
     }
 
-    /* Latar belakang aurora dihapus */
-
-    /* Kontainer utama diberi padding untuk header & footer */
     .main-content {
       width: min(700px, 92vw);
       margin: 0 auto;
-      /* Padding atas & bawah untuk memberi ruang bagi header & footer fixed */
       padding: 120px 0; 
     }
     
-    /* HEADER: Dibuat tetap (fixed) di atas */
     .hero{
       position: fixed;
       top: 0;
@@ -53,25 +47,41 @@
       box-shadow: 0 2px 10px rgba(0,0,0,.5);
     }
     
-    /* Logo Dihapus */
-
     h1{margin:0; font-size:24px; letter-spacing:.5px; font-weight: bold;}
     .sub{font-size: 14px; color: var(--muted);}
     
-    .actions{display:flex; gap:12px; padding:16px 0; flex-wrap:wrap; align-items:center; justify-content: center;}
-    .btn{appearance:none; border:1px solid var(--stroke); color:var(--ink); cursor:pointer; background-color: #3e3e3e; padding:10px 14px; border-radius:8px; display:inline-flex; align-items:center; gap:8px; transition: background-color .2s;}
-    .btn:hover{background-color: #505050;}
-    .btn:active{transform: scale(.98);}
+    /* Tombol copy sekarang diatur posisinya dari .content */
+    .content{
+      padding:10px 0 0;
+      position: relative; /* Diperlukan untuk positioning tombol copy */
+    }
 
-    .content{padding:10px 0 0}
-    .meta{font-size:13px; color:var(--muted); margin-bottom:10px; display:flex; align-items:center; gap:8px}
-    .pill{font-size:12px; padding:6px 10px; border-radius:999px; background-color: var(--stroke); border:1px solid var(--stroke); color:var(--ink); display:inline-flex; align-items:center; gap:8px}
-    .pill.ok{background-color: var(--ok); color:white;}
-    .pill.warn{background-color: var(--brand); color:white;} /* Status Gagal pakai warna merah */
+    .meta-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .meta{font-size:13px; color:var(--muted);}
+    .timestamp{font-size: 13px; color: var(--ok);}
+
+    /* Tombol copy sekarang diposisikan secara absolute */
+    .btn.copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 10;
+      padding: 6px 10px; /* Ukuran lebih kecil */
+      font-size: 13px;
+      background-color: #21212199;
+      backdrop-filter: blur(4px);
+    }
+    .btn:hover{background-color: #505050;}
 
     pre{
       margin:0;
       padding:16px;
+      padding-top: 48px; /* Beri ruang lebih di atas untuk tombol copy */
       min-height:120px;
       white-space:pre-wrap;
       word-break:break-word;
@@ -80,9 +90,9 @@
       background-color: var(--panel);
       border: 1px solid var(--stroke);
       border-radius: 14px;
+      position: relative;
     }
 
-    /* FOOTER: Dibuat tetap (fixed) di bawah */
     .footer{
       position: fixed;
       bottom: 0;
@@ -96,7 +106,7 @@
       background-color: var(--panel);
     }
 
-    .toast{position:fixed; right:16px; bottom:60px; /* Ditinggikan agar tidak tertutup footer */ padding:12px 14px; border-radius:8px; background-color: var(--ok); color:white; box-shadow:0 10px 30px rgba(0,0,0,.3); opacity:0; transform: translateY(8px); pointer-events:none; transition: all .3s;}
+    .toast{position:fixed; right:16px; bottom:60px; padding:12px 14px; border-radius:8px; background-color: var(--ok); color:white; box-shadow:0 10px 30px rgba(0,0,0,.3); opacity:0; transform: translateY(8px); pointer-events:none; transition: all .3s;}
     .toast.show{opacity:1; transform:none}
 
   </style>
@@ -110,13 +120,12 @@
 
   <main class="main-content">
       <div class="content">
-        <div id="meta" class="meta">—</div>
+        <div class="meta-container">
+          <span id="meta" class="meta">—</span>
+          <span id="timestamp" class="timestamp"></span>
+        </div>
+        <button id="copy" class="btn copy-btn">📋 Copy</button>
         <pre id="out">—</pre>
-      </div>
-
-      <div class="actions">
-        <button id="copy" class="btn">📋 Copy</button>
-        <span id="pill" class="pill">Status: <b>Belum dimuat</b></span>
       </div>
   </main>
 
@@ -130,25 +139,16 @@
     const copyBtn = document.getElementById("copy");
     const out = document.getElementById("out");
     const meta = document.getElementById("meta");
-    const pill = document.getElementById("pill");
+    const timestamp = document.getElementById("timestamp");
 
-    let lastFetch = 0;
-
-    function setPill(text, type){
-      pill.className = "pill" + (type ? " " + type : "");
-      pill.innerHTML = text;
-    }
+    // Fungsi dan elemen 'pill' dihapus
 
     function setStateLoading(){
-      meta.textContent = "Memuat stok akrab v2...";
-      setPill('Status: <b>Memuat…</b>');
-    }
-    function setStateDone(){
-      lastFetch = Date.now();
+      // Teks status memuat disatukan di sini
+      meta.textContent = "Memuat stok...";
     }
 
     async function fetchStok(){
-      // Mencegah fetch berjalan berlebihan jika tab tidak aktif
       if (document.hidden) return;
 
       try{
@@ -159,26 +159,26 @@
 
         if (!r.ok || !j || j.ok === false){
           const msg = (j && (j.error || j.message)) ? j.error || j.message : "HTTP " + status;
-          meta.textContent = "Gagal memuat (" + msg + "). Coba lagi.";
-          setPill('Status: <b>Gagal</b>', 'warn');
+          meta.textContent = `Gagal memuat (${msg}).`;
+          timestamp.textContent = ""; // Kosongkan timestamp jika gagal
           return;
         }
 
         let text = (j.text || "").trim();
         if (!text) text = "Stok kosong / belum tersedia.\nSilakan cek lagi nanti.";
 
-        // Hanya update jika ada perubahan data untuk menghindari kedipan
-        if (out.textContent !== text) {
-            meta.textContent = j.count > 0 ? ("Ditemukan " + j.count + " item stok.") : "Stok kosong.";
-            out.textContent = text;
-        }
+        // Update teks status utama dengan jumlah produk
+        meta.textContent = j.count > 0 ? `Ditemukan ${j.count} item stok.` : "Stok kosong.";
+        out.textContent = text;
         
-        setPill(j.count > 0 ? 'Status: <b class="num">'+j.count+'</b> item tersedia' : 'Status: <b>Stok kosong</b>', j.count>0 ? 'ok' : '');
+        // BARU: Update timestamp setiap kali data berhasil dimuat
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('id-ID', { hour12: false });
+        timestamp.textContent = `Diperbarui pada ${timeString}`;
+
       }catch(e){
-        meta.textContent = "Gagal memuat (" + (e && e.message || "error") + ").";
-        setPill('Status: <b>Gagal</b>', 'warn');
-      }finally{
-        setStateDone();
+        meta.textContent = `Gagal memuat (${e.message || "error"}).`;
+        timestamp.textContent = ""; // Kosongkan timestamp jika gagal
       }
     }
 
@@ -190,12 +190,11 @@
       }catch{}
     });
 
-    // Panggil fetchStok() saat halaman pertama kali dimuat
     document.addEventListener("DOMContentLoaded", fetchStok);
     
-    // BARU: Auto-refresh data setiap 3 detik
     setInterval(fetchStok, 3000);
 
   </script>
 </body>
-</html>
+  </html>
+  
