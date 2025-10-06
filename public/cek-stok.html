@@ -8,13 +8,13 @@
 
   <style>
     :root{
-      --bg: #212121;      /* Latar belakang abu-abu gelap */
-      --panel: #2d2d2d;   /* Warna panel sedikit lebih terang */
-      --ink: #ffffff;     /* Teks putih */
-      --muted: #aaaaaa;   /* Teks abu-abu */
-      --stroke: #444444;  /* Warna garis/border */
-      --brand: #EC2028;   /* Merah khas Telkomsel/SiDompul */
-      --ok: #4CAF50;      /* Hijau untuk status OK */
+      --bg: #212121;
+      --panel: #2d2d2d;
+      --ink: #ffffff;
+      --muted: #aaaaaa;
+      --stroke: #444444;
+      --brand: #EC2028;
+      --ok: #4CAF50;
     }
     *{box-sizing:border-box}
     html, body{height:100%}
@@ -24,13 +24,11 @@
       font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       background-color: var(--bg);
     }
-
     .main-content {
       width: min(700px, 92vw);
       margin: 0 auto;
       padding: 120px 0; 
     }
-    
     .hero{
       position: fixed;
       top: 0;
@@ -46,15 +44,10 @@
       background-color: var(--panel);
       box-shadow: 0 2px 10px rgba(0,0,0,.5);
     }
-    
     h1{margin:0; font-size:24px; letter-spacing:.5px; font-weight: bold;}
     .sub{font-size: 14px; color: var(--muted);}
     
-    /* Tombol copy sekarang diatur posisinya dari .content */
-    .content{
-      padding:10px 0 0;
-      position: relative; /* Diperlukan untuk positioning tombol copy */
-    }
+    .content{ padding:10px 0 0; }
 
     .meta-container {
       display: flex;
@@ -65,23 +58,29 @@
     .meta{font-size:13px; color:var(--muted);}
     .timestamp{font-size: 13px; color: var(--ok);}
 
-    /* Tombol copy sekarang diposisikan secara absolute */
-    .btn.copy-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 10;
-      padding: 6px 10px; /* Ukuran lebih kecil */
-      font-size: 13px;
-      background-color: #21212199;
-      backdrop-filter: blur(4px);
+    /* BARU: Kontainer untuk tombol copy agar di tengah */
+    .copy-container {
+        padding: 8px 0 16px;
+        text-align: center;
+    }
+    .btn {
+      appearance:none; 
+      border:1px solid var(--stroke); 
+      color:var(--ink); 
+      cursor:pointer; 
+      background-color: #3e3e3e; 
+      padding:10px 14px; 
+      border-radius:8px; 
+      display:inline-flex; 
+      align-items:center; 
+      gap:8px; 
+      transition: background-color .2s;
     }
     .btn:hover{background-color: #505050;}
 
     pre{
       margin:0;
       padding:16px;
-      padding-top: 48px; /* Beri ruang lebih di atas untuk tombol copy */
       min-height:120px;
       white-space:pre-wrap;
       word-break:break-word;
@@ -90,9 +89,7 @@
       background-color: var(--panel);
       border: 1px solid var(--stroke);
       border-radius: 14px;
-      position: relative;
     }
-
     .footer{
       position: fixed;
       bottom: 0;
@@ -105,10 +102,8 @@
       color: var(--muted);
       background-color: var(--panel);
     }
-
     .toast{position:fixed; right:16px; bottom:60px; padding:12px 14px; border-radius:8px; background-color: var(--ok); color:white; box-shadow:0 10px 30px rgba(0,0,0,.3); opacity:0; transform: translateY(8px); pointer-events:none; transition: all .3s;}
     .toast.show{opacity:1; transform:none}
-
   </style>
 </head>
 <body>
@@ -124,7 +119,11 @@
           <span id="meta" class="meta">—</span>
           <span id="timestamp" class="timestamp"></span>
         </div>
-        <button id="copy" class="btn copy-btn">📋 Copy</button>
+        
+        <div class="copy-container">
+            <button id="copy" class="btn">📋 Copy</button>
+        </div>
+
         <pre id="out">—</pre>
       </div>
   </main>
@@ -141,60 +140,61 @@
     const meta = document.getElementById("meta");
     const timestamp = document.getElementById("timestamp");
 
-    // Fungsi dan elemen 'pill' dihapus
-
     function setStateLoading(){
-      // Teks status memuat disatukan di sini
       meta.textContent = "Memuat stok...";
     }
 
     async function fetchStok(){
       if (document.hidden) return;
-
       try{
         setStateLoading();
         const r = await fetch("/api/stok?ts=" + Date.now(), { cache: "no-store" });
-        const status = r.status;
-        let j; try { j = await r.json(); } catch { j = null; }
+        const j = await r.json();
 
-        if (!r.ok || !j || j.ok === false){
-          const msg = (j && (j.error || j.message)) ? j.error || j.message : "HTTP " + status;
+        if (!r.ok || j.ok === false){
+          const msg = j?.error || j?.message || `HTTP ${r.status}`;
           meta.textContent = `Gagal memuat (${msg}).`;
-          timestamp.textContent = ""; // Kosongkan timestamp jika gagal
+          timestamp.textContent = "";
           return;
         }
 
-        let text = (j.text || "").trim();
-        if (!text) text = "Stok kosong / belum tersedia.\nSilakan cek lagi nanti.";
-
-        // Update teks status utama dengan jumlah produk
+        const text = (j.text || "").trim() || "Stok kosong / belum tersedia.\nSilakan cek lagi nanti.";
         meta.textContent = j.count > 0 ? `Ditemukan ${j.count} item stok.` : "Stok kosong.";
         out.textContent = text;
         
-        // BARU: Update timestamp setiap kali data berhasil dimuat
         const now = new Date();
         const timeString = now.toLocaleTimeString('id-ID', { hour12: false });
         timestamp.textContent = `Diperbarui pada ${timeString}`;
 
       }catch(e){
         meta.textContent = `Gagal memuat (${e.message || "error"}).`;
-        timestamp.textContent = ""; // Kosongkan timestamp jika gagal
+        timestamp.textContent = "";
       }
     }
 
+    // BARU: Fungsi copy diubah untuk menyertakan header dan footer
     copyBtn.addEventListener("click", async ()=>{
       try{
-        await navigator.clipboard.writeText(out.textContent || "");
+        const headerText = "MANG X STORE\nSTOK AKRAB V2";
+        const stockText = out.textContent.trim();
+        const footerText = "© MANG X STORE 2025";
+        let textToCopy = stockText; // Default text to copy
+
+        // Hanya tambahkan header dan footer jika ada stok
+        if (stockText && stockText !== "—" && !stockText.startsWith("Stok kosong")) {
+            textToCopy = `${headerText}\n\n${stockText}\n\n${footerText}`;
+        }
+        
+        await navigator.clipboard.writeText(textToCopy);
         toast.classList.add("show");
         setTimeout(()=>toast.classList.remove("show"), 1400);
-      }catch{}
+      }catch(err){
+        console.error("Gagal menyalin teks: ", err);
+      }
     });
 
     document.addEventListener("DOMContentLoaded", fetchStok);
-    
     setInterval(fetchStok, 3000);
-
   </script>
 </body>
-  </html>
-  
+</html>
