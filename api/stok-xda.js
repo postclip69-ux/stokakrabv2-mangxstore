@@ -39,7 +39,12 @@ function extractFromJSON(raw) {
       lower.sku || lower.kode || lower.code || lower.type || lower.product || lower.product_code || ""
     ).trim().toUpperCase();
     const name = String(lower.nama || lower.name || lower.title || lower.type || sku || "-").trim();
-    let stock = lower.stock ?? lower.stok ?? lower.sisa ?? lower.sisa_slot ?? lower.slot ?? lower.qty ?? lower.quantity;
+    
+    // --- PERUBAHAN DI BARIS INI ---
+    // Ditambahkan 'lower.unit' untuk membaca data dari API XDA
+    let stock = lower.stock ?? lower.stok ?? lower.sisa ?? lower.sisa_slot ?? lower.slot ?? lower.qty ?? lower.quantity ?? lower.unit;
+    // --- AKHIR PERUBAHAN ---
+
     stock = toNumber(stock);
     if (name || sku) out.push({ sku: sku || name, name: name || sku, stock });
   }
@@ -93,6 +98,7 @@ module.exports = async (req, res) => {
     }
 
     // --- JANGAN error ketika kosong --- //
+    // Blok ini akan terlewati jika API mengirimkan list (meskipun stoknya 0)
     if (!list.length) {
       res.setHeader("Cache-Control", "s-maxage=15, stale-while-revalidate=60");
       return res.status(200).json({
