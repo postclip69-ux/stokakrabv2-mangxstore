@@ -105,14 +105,14 @@
     }
     .btn:hover{background-color: #505050;}
 
-    /* PERUBAHAN: Teks stok diperkecil */
+        /* PERUBAHAN: Teks stok diperkecil */
     pre{
       margin:0;
       padding:16px;
       min-height:120px;
-      white-space:pre-wrap;
-      word-break:break-word;
-      font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; /* Diubah dari 14px */
+      white-space: pre;      /* <-- DIUBAH: Agar teks tidak turun */
+      overflow-x: auto;    /* <-- DITAMBAHKAN: Buat scrollbar jika teks panjang */
+      font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; 
       color:var(--ink);
       background-color: var(--panel);
       border: 1px solid var(--stroke);
