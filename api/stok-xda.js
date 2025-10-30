@@ -3,7 +3,6 @@
 // API ini KHUSUS untuk XDA
 // ENV opsional: UPSTREAM_URL_XDA, CORS_ORIGIN, FETCH_TIMEOUT_MS
 
-// GANTI URL INI KE API XDA YANG BARU
 const DEFAULT_UPSTREAM = process.env.UPSTREAM_URL_XDA
   || "https://panel.khfy-store.com/api_v3/cek_stock_akrab_v2";
 
@@ -24,49 +23,41 @@ function toNumber(x) {
   return Number.isFinite(n) ? n : 0;
 }
 
-// Ekstrak list stok dari JSON bervariasi
-function extractFromJSON(raw) {
-  if (!raw) return [];
-  const arr = Array.isArray(raw?.data) ? raw.data
-           : Array.isArray(raw) ? raw
-           : (raw?.items || raw?.result || raw?.rows || []);
-
+// --- FUNGSI PARSING BARU ---
+// Dibuat khusus untuk membaca JSON {"status": true, "message": "..."}
+function extractFromStringMessage(raw) {
   const out = [];
-  for (const it of arr) {
-    if (!it) continue;
-    const lower = {}; for (const k in it) lower[k.toLowerCase()] = it[k];
-    const sku = String(
-      lower.sku || lower.kode || lower.code || lower.type || lower.product || lower.product_code || ""
-    ).trim().toUpperCase();
-    const name = String(lower.nama || lower.name || lower.title || lower.type || sku || "-").trim();
-    
-    // --- PERUBAHAN DI BARIS INI ---
-    // Ditambahkan 'lower.unit' untuk membaca data dari API XDA
-    let stock = lower.stock ?? lower.stok ?? lower.sisa ?? lower.sisa_slot ?? lower.slot ?? lower.qty ?? lower.quantity ?? lower.unit;
-    // --- AKHIR PERUBAHAN ---
 
-    stock = toNumber(stock);
-    if (name || sku) out.push({ sku: sku || name, name: name || sku, stock });
+  // 1. Pastikan data valid
+  if (!raw || raw.status !== true || typeof raw.message !== 'string' || !raw.message.trim()) {
+    return []; // Kembalikan array kosong jika format tidak dikenal
   }
-  return out;
-}
 
-// Parsir HTML tabel sederhana jika upstream mengembalikan halaman
-function extractFromHTML(html) {
-  if (typeof html !== "string" || !html) return [];
-  const out = [];
-  const rowRe = /<tr[^>]*>(.*?)<\/tr>/gis;
-  let m;
-  while ((m = rowRe.exec(html))) {
-    const row = m[1];
-    const cols = [...row.matchAll(/<t[dh][^>]*>(.*?)<\/t[dh]>/gis)]
-      .map(x => x[1].replace(/<[^>]*>/g, "").trim());
-    if (cols.length >= 2 && cols[0] && /\d/.test(cols[1])) {
-      out.push({ sku: cols[0].toUpperCase(), name: cols[0], stock: toNumber(cols[1]) });
+  // 2. Ambil string 'message' dan pecah per baris
+  const lines = raw.message.split('\n'); 
+
+  // 3. Looping setiap baris
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    if (!trimmedLine) continue; // Lewati baris kosong
+
+    // 4. Pecah baris berdasarkan karakter '|'
+    const parts = trimmedLine.split('|'); 
+    if (parts.length < 2) continue; // Lewati baris yang formatnya salah
+
+    // 5. Ambil data
+    const sku = parts[0].trim().toUpperCase();
+    const name = sku; // Di format ini, nama dan SKU sama
+    const stock = toNumber(parts[1]); // " 0 unit " akan diubah menjadi 0
+
+    if (sku) {
+      out.push({ sku: sku, name: name, stock: stock });
     }
   }
   return out;
 }
+// --- AKHIR FUNGSI BARU ---
+
 
 module.exports = async (req, res) => {
   cors(req, res);
@@ -90,12 +81,10 @@ module.exports = async (req, res) => {
     const text = await r.text();
     let json; try { json = JSON.parse(text); } catch { json = null; }
 
-    // Kumpulkan list dari JSON/HTML
-    let list = extractFromJSON(json);
-    if (!list.length) {
-      const htmlList = extractFromHTML(text);
-      if (htmlList.length) list = htmlList;
-    }
+    // --- PERUBAHAN UTAMA DI SINI ---
+    // Kita panggil fungsi parsing baru kita
+    let list = extractFromStringMessage(json);
+    // --- AKHIR PERUBAHAN ---
 
     // --- JANGAN error ketika kosong --- //
     // Blok ini akan terlewati jika API mengirimkan list (meskipun stoknya 0)
