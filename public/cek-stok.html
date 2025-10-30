@@ -21,7 +21,8 @@
     body{
       margin:0; 
       color:var(--ink); 
-      font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      /* PERUBAHAN: Font utama diperkecil sedikit */
+      font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       background-color: var(--bg);
     }
     .main-content {
@@ -47,19 +48,30 @@
     h1{margin:0; font-size:24px; letter-spacing:.5px; font-weight: bold;}
     .sub{font-size: 14px; color: var(--muted);}
     
+    /* === PERUBAHAN UTAMA: WADAH FLEXBOX === */
+    .stok-container {
+        display: flex;
+        flex-direction: row; /* Menyusun ke samping */
+        align-items: flex-start; /* Rata atas */
+        gap: 12px; /* Jarak antar kolom */
+    }
+    /* Atur agar tiap .content mengambil setengah lebar */
+    .stok-container .content {
+        flex: 1; /* Cara modern untuk bilang "bagi rata" */
+        width: 50%;
+    }
+    /* ======================================= */
+
     .content{ padding:10px 0 0; }
 
-        /* BARU: Judul Kategori */
+    /* PERUBAHAN: Judul Kategori diperkecil */
     .category-title {
-        color: var(--ink); /* <-- INI AKAN MENJADI PUTIH (sesuai variabel --ink) */
-        font-size: 20px;
+        color: var(--ink); /* Diubah dari --brand (merah) ke --ink (putih) */
+        font-size: 18px; /* Diubah dari 20px */
         font-weight: bold;
-        margin: 24px 0 4px;
+        margin: 0 0 4px; /* Disederhanakan */
         padding-bottom: 4px;
         border-bottom: 1px solid var(--stroke);
-    }
-    .content:first-of-type .category-title {
-        margin-top: 0; /* Hapus margin atas untuk item pertama */
     }
 
     .meta-container {
@@ -68,20 +80,23 @@
       align-items: center;
       margin-bottom: 10px;
     }
-    .meta{font-size:13px; color:var(--muted);}
-    .timestamp{font-size: 13px; color: var(--ok);}
+    /* PERUBAHAN: Meta & timestamp diperkecil */
+    .meta{font-size:12px; color:var(--muted);}
+    .timestamp{font-size: 12px; color: var(--ok);}
 
     .copy-container {
         padding: 8px 0 16px;
         text-align: center;
     }
+    /* PERUBAHAN: Tombol diperkecil */
     .btn {
       appearance:none; 
       border:1px solid var(--stroke); 
       color:var(--ink); 
       cursor:pointer; 
       background-color: #3e3e3e; 
-      padding:10px 14px; 
+      padding: 8px 12px; /* Diubah dari 10px 14px */
+      font-size: 13px; /* Ditambahkan agar teks tombol ikut kecil */
       border-radius:8px; 
       display:inline-flex; 
       align-items:center; 
@@ -90,13 +105,14 @@
     }
     .btn:hover{background-color: #505050;}
 
+    /* PERUBAHAN: Teks stok diperkecil */
     pre{
       margin:0;
       padding:16px;
       min-height:120px;
       white-space:pre-wrap;
       word-break:break-word;
-      font:14px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;
+      font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace; /* Diubah dari 14px */
       color:var(--ink);
       background-color: var(--panel);
       border: 1px solid var(--stroke);
@@ -127,35 +143,37 @@
 
   <main class="main-content">
       
-      <div class="content">
-        <h2 class="category-title">STOK XLA</h2>
-        <div class="meta-container">
-          <span id="meta-xla" class="meta">—</span>
-          <span id="timestamp-xla" class="timestamp"></span>
-        </div>
-        
-        <div class="copy-container">
-            <button id="copy-xla" class="btn">📋 Copy XLA</button>
-        </div>
+      <div class="stok-container">
 
-        <pre id="out-xla">—</pre>
-      </div>
+        <div class="content">
+          <h2 class="category-title">STOK XLA</h2>
+          <div class="meta-container">
+            <span id="meta-xla" class="meta">—</span>
+            <span id="timestamp-xla" class="timestamp"></span>
+          </div>
+          
+          <div class="copy-container">
+              <button id="copy-xla" class="btn">📋 Copy XLA</button>
+          </div>
 
-      <div class="content">
-        <h2 class="category-title">STOK XDA</h2>
-        <div class="meta-container">
-          <span id="meta-xda" class="meta">—</span>
-          <span id="timestamp-xda" class="timestamp"></span>
-        </div>
-        
-        <div class="copy-container">
-            <button id="copy-xda" class="btn">📋 Copy XDA</button>
+          <pre id="out-xla">—</pre>
         </div>
 
-        <pre id="out-xda">—</pre>
-      </div>
+        <div class="content">
+          <h2 class="category-title">STOK XDA</h2>
+          <div class="meta-container">
+            <span id="meta-xda" class="meta">—</span>
+            <span id="timestamp-xda" class="timestamp"></span>
+          </div>
+          
+          <div class="copy-container">
+              <button id="copy-xda" class="btn">📋 Copy XDA</button>
+          </div>
 
-  </main>
+          <pre id="out-xda">—</pre>
+        </div>
+      
+      </div> </main>
 
   <footer class="footer">
     © MXS STORE AKRAB 2025
@@ -249,7 +267,6 @@
         loadAllData();
         
         // Atur interval refresh (6 detik)
-        // Interval 1000ms (1 detik) terlalu cepat dan boros
         setInterval(loadAllData, 6000); 
     });
   </script>
