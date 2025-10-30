@@ -49,6 +49,19 @@
     
     .content{ padding:10px 0 0; }
 
+    /* BARU: Judul Kategori */
+    .category-title {
+        color: var(--brand);
+        font-size: 20px;
+        font-weight: bold;
+        margin: 24px 0 4px;
+        padding-bottom: 4px;
+        border-bottom: 1px solid var(--stroke);
+    }
+    .content:first-of-type .category-title {
+        margin-top: 0; /* Hapus margin atas untuk item pertama */
+    }
+
     .meta-container {
       display: flex;
       justify-content: space-between;
@@ -58,7 +71,6 @@
     .meta{font-size:13px; color:var(--muted);}
     .timestamp{font-size: 13px; color: var(--ok);}
 
-    /* BARU: Kontainer untuk tombol copy agar di tengah */
     .copy-container {
         padding: 8px 0 16px;
         text-align: center;
@@ -114,18 +126,35 @@
   </header>
 
   <main class="main-content">
+      
       <div class="content">
+        <h2 class="category-title">STOK XLA</h2>
         <div class="meta-container">
-          <span id="meta" class="meta">—</span>
-          <span id="timestamp" class="timestamp"></span>
+          <span id="meta-xla" class="meta">—</span>
+          <span id="timestamp-xla" class="timestamp"></span>
         </div>
         
         <div class="copy-container">
-            <button id="copy" class="btn">📋 Copy</button>
+            <button id="copy-xla" class="btn">📋 Copy XLA</button>
         </div>
 
-        <pre id="out">—</pre>
+        <pre id="out-xla">—</pre>
       </div>
+
+      <div class="content">
+        <h2 class="category-title">STOK XDA</h2>
+        <div class="meta-container">
+          <span id="meta-xda" class="meta">—</span>
+          <span id="timestamp-xda" class="timestamp"></span>
+        </div>
+        
+        <div class="copy-container">
+            <button id="copy-xda" class="btn">📋 Copy XDA</button>
+        </div>
+
+        <pre id="out-xda">—</pre>
+      </div>
+
   </main>
 
   <footer class="footer">
@@ -135,66 +164,94 @@
   <div id="toast" class="toast">✅ Disalin ke clipboard</div>
 
   <script>
-    const copyBtn = document.getElementById("copy");
-    const out = document.getElementById("out");
-    const meta = document.getElementById("meta");
-    const timestamp = document.getElementById("timestamp");
+    // Ambil semua elemen
+    const toast = document.getElementById("toast");
 
-    function setStateLoading(){
-      meta.textContent = "Memuat stok...";
-    }
+    // Elemen XLA
+    const metaXLA = document.getElementById("meta-xla");
+    const timestampXLA = document.getElementById("timestamp-xla");
+    const outXLA = document.getElementById("out-xla");
 
-    async function fetchStok(){
-      if (document.hidden) return;
-      try{
-        setStateLoading();
-        const r = await fetch("/api/stok?ts=" + Date.now(), { cache: "no-store" });
+    // Elemen XDA
+    const metaXDA = document.getElementById("meta-xda");
+    const timestampXDA = document.getElementById("timestamp-xda");
+    const outXDA = document.getElementById("out-xda");
+
+    // Fungsi generik untuk fetch stok
+    async function fetchStok(apiUrl, metaEl, outEl, timestampEl) {
+      if (document.hidden) return; // Jangan fetch jika tab tidak aktif
+      
+      try {
+        metaEl.textContent = "Memuat stok...";
+        const r = await fetch(apiUrl + "?ts=" + Date.now(), { cache: "no-store" });
         const j = await r.json();
 
-        if (!r.ok || j.ok === false){
+        if (!r.ok || j.ok === false) {
           const msg = j?.error || j?.message || `HTTP ${r.status}`;
-          meta.textContent = `Gagal memuat (${msg}).`;
-          timestamp.textContent = "";
+          metaEl.textContent = `Gagal memuat (${msg}).`;
+          timestampEl.textContent = "";
           return;
         }
 
         const text = (j.text || "").trim() || "Stok kosong / belum tersedia.\nSilakan cek lagi nanti.";
-        meta.textContent = j.count > 0 ? `Ditemukan ${j.count} item stok.` : "Stok kosong.";
-        out.textContent = text;
+        metaEl.textContent = j.count > 0 ? `Ditemukan ${j.count} item stok.` : "Stok kosong.";
+        outEl.textContent = text;
         
         const now = new Date();
         const timeString = now.toLocaleTimeString('id-ID', { hour12: false });
-        timestamp.textContent = `Diperbarui pada ${timeString}`;
+        timestampEl.textContent = `Diperbarui pada ${timeString}`;
 
-      }catch(e){
-        meta.textContent = `Gagal memuat (${e.message || "error"}).`;
-        timestamp.textContent = "";
+      } catch (e) {
+        metaEl.textContent = `Gagal memuat (${e.message || "error"}).`;
+        timestampEl.textContent = "";
       }
     }
 
-    // BARU: Fungsi copy diubah untuk menyertakan header dan footer
-    copyBtn.addEventListener("click", async ()=>{
-      try{
-        const headerText = "MANG X STORE\nSTOK AKRAB V2";
-        const stockText = out.textContent.trim();
-        const footerText = "© MANG X STORE 2025";
-        let textToCopy = stockText; // Default text to copy
+    // Fungsi generik untuk tombol copy
+    function setupCopyButton(buttonId, preId, categoryName) {
+      const copyBtn = document.getElementById(buttonId);
+      const out = document.getElementById(preId);
+      
+      copyBtn.addEventListener("click", async () => {
+        try {
+          const headerText = `MANG X STORE\nSTOK ${categoryName}`;
+          const stockText = out.textContent.trim();
+          const footerText = "© MANG X STORE 2025";
+          let textToCopy = stockText; // Default text to copy
 
-        // Hanya tambahkan header dan footer jika ada stok
-        if (stockText && stockText !== "—" && !stockText.startsWith("Stok kosong")) {
-            textToCopy = `${headerText}\n\n${stockText}\n\n${footerText}`;
+          // Hanya tambahkan header dan footer jika ada stok
+          if (stockText && stockText !== "—" && !stockText.startsWith("Stok kosong")) {
+              textToCopy = `${headerText}\n\n${stockText}\n\n${footerText}`;
+          }
+          
+          await navigator.clipboard.writeText(textToCopy);
+          toast.classList.add("show");
+          setTimeout(() => toast.classList.remove("show"), 1400);
+        } catch (err) {
+          console.error("Gagal menyalin teks: ", err);
         }
-        
-        await navigator.clipboard.writeText(textToCopy);
-        toast.classList.add("show");
-        setTimeout(()=>toast.classList.remove("show"), 1400);
-      }catch(err){
-        console.error("Gagal menyalin teks: ", err);
-      }
-    });
+      });
+    }
 
-    document.addEventListener("DOMContentLoaded", fetchStok);
-    setInterval(fetchStok, 1000);
+    // Fungsi untuk memuat semua data
+    function loadAllData() {
+        fetchStok("/api/stok", metaXLA, outXLA, timestampXLA);     // API Lama
+        fetchStok("/api/stok-xda", metaXDA, outXDA, timestampXDA); // API Baru
+    }
+
+    // Event Listeners
+    document.addEventListener("DOMContentLoaded", () => {
+        // Pasang fungsi copy ke masing-masing tombol
+        setupCopyButton("copy-xla", "out-xla", "XLA");
+        setupCopyButton("copy-xda", "out-xda", "XDA");
+        
+        // Muat data saat halaman dibuka
+        loadAllData();
+        
+        // Atur interval refresh (30 detik)
+        // Interval 1000ms (1 detik) terlalu cepat dan boros
+        setInterval(loadAllData, 30000); 
+    });
   </script>
 </body>
 </html>
